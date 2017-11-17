@@ -1,8 +1,3 @@
-<div class="banner">
-	<img id="topBanner" src="./assets/images/blank.gif" />
-	<video id="topVideoBanner" autoplay="autoplay"></video>
-</div>
-<div id="systemWarning" class="warning"></div>
 <div class="webcam">
 	<div id="localCanvasGroup">
 		<canvas id="localCanvas" width="946" height="1262"></canvas>
@@ -11,48 +6,9 @@
 		<canvas id="localCanvasDrawing" width="946" height="1262"></canvas>
 		<canvas id="localEffect" width="946" height="1262"></canvas>		
 	</div>
-	<img id="videoWaterMark" class="camElement" src="./assets/images/blank.gif" />
-	<div id="galleryList">
-		<img src="./assets/images/blank.gif" class="thumb" data-thumb-no="0" />
-		<img src="./assets/images/blank.gif" class="thumb" data-thumb-no="1" />
-		<img src="./assets/images/blank.gif" class="thumb" data-thumb-no="2" />
-		<img src="./assets/images/blank.gif" class="thumb big" data-thumb-no="3" />
-		<img src="./assets/images/blank.gif" class="thumb" data-thumb-no="4" />
-		<img src="./assets/images/blank.gif" class="thumb" data-thumb-no="5" />
-		<img src="./assets/images/blank.gif" class="thumb" data-thumb-no="6" />
-	</div>
+	<img id="videoWaterMark" class="camElement" src="./assets/images/watermark.png" />
 	<div id="camControl">
-		<a href="#" data-action="takePhoto"></a>
 		<a href="#" data-action="takeVideo"></a>
-		<a href="#" data-action="takeGIF">
-			<div class="tge1"></div>
-			<div class="tge2"></div>
-		</a>
-		<a href="#" data-action="takeExtract"></a>
-		<a href="#" data-action="arEffect"></a>
-		<a href="#" data-action="prevWaterMark"></a>
-		<a href="#" data-action="nextWaterMark"></a>
-	</div>
-
-	<div id="camGIFThumbs" class="camElement">
-		<img src="./assets/images/blank.gif" class="thumb" data-thumb-no="0" />
-		<img src="./assets/images/blank.gif" class="thumb" data-thumb-no="1" />
-		<img src="./assets/images/blank.gif" class="thumb" data-thumb-no="2" />
-	</div>
-
-	<div id="camWatermarkChoice" class="camElement">
-	</div>
-
-	<div id="camAReffectChoice" class="camElement">
-	</div>
-
-	<div id="camImagePre" class="camElement">
-		<a href="#" data-action="nextPre"></a>
-	</div>
-
-	<div id="camHtmlPre" class="camElement">
-		<!--webview id="camHtmlPreView" src="about:blank" disablewebsecurity></webview//-->
-		<iframe id="camHtmlPreView" src="about:blank" frameborder="0"></iframe>
 	</div>
 
 	<div id="camPosTip">
@@ -69,27 +25,12 @@
 		<a href="#" data-action="skipPreview"></a>
 	</div>
 
-	<div id="camImagePost" class="camElement">
-		<a href="#" data-action="nextPost"></a>
-	</div>
-
-	<div id="camHtmlPost" class="camElement">
-		<!--webview id="camHtmlPostView" src="about:blank" disablewebsecurity></webview//-->
-		<iframe id="camHtmlPostView" src="about:blank" frameborder="0"></iframe>
-	</div>
-
 	<div id="camPreviewPanel" class="camElement">
 		<img src="./assets/images/blank.gif" />
 		<video poster="./assets/images/processing.gif" autoplay="autoplay"></video>
 	</div>
 </div>
 <div id="camTimerImages" class="preloadImages">
-	<img src="./assets/images/TakePhotoTimer1.png" data-image-type="photo" data-image-no="1" />
-	<img src="./assets/images/TakePhotoTimer2.png" data-image-type="photo" data-image-no="2" />
-	<img src="./assets/images/TakePhotoTimer3.png" data-image-type="photo" data-image-no="3" />
-	<img src="./assets/images/TakePhotoTimer4.png" data-image-type="photo" data-image-no="4" />
-	<img src="./assets/images/TakePhotoTimer5.png" data-image-type="photo" data-image-no="5" />
-
 	<img src="./assets/images/rec1.png" data-image-type="video" data-image-no="1" />
 	<img src="./assets/images/rec2.png" data-image-type="video" data-image-no="2" />
 	<img src="./assets/images/rec3.png" data-image-type="video" data-image-no="3" />
@@ -103,8 +44,6 @@
 	<img src="./assets/images/Take2.png" data-image-type="gif-tip" data-image-no="2" />
 	<img src="./assets/images/Take3.png" data-image-type="gif-tip" data-image-no="3" />
 </div>
-<div id="camImageFlash"></div>
-<div id="galleryPreload" class="preloadImages"></div>
 
 <script id="wmcTemplate" type="text/x-jquery-tmpl">
 	<div class="title"><img src="./assets/images/SelectYourPhotoFrame.png" /></div>

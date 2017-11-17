@@ -11,7 +11,6 @@ const qcEvent = {
 				e.preventDefault();
 				qcFramework.cancelRelaunch();
 				switch($(e.target).data('action')) {
-
 					case 'takeVideo':
 						self.eventCaptureVideo();
 						break;

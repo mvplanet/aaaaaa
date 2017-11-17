@@ -1,21 +1,5 @@
 const qcScene = {
-	waterMarks: [],
-	waterMarksUpdate: null,
-	waterMarksUpdateFlag: false,
-	waterMarksHash: '',
-	currentWaterMarkIdx: 0,
 	currentScene: 'launch',
-	currentBannerType: 'IMAGE',
-	passPreImage: false,
-	seed: {
-		waterMark: null,
-		camEnded: null,
-		preImage: null,
-		postImage: null,
-		preview: null,
-		watermarkChoice: null,
-		arChoice: null
-	},
 
 	init() {
 		const self = this;
@@ -77,13 +61,6 @@ const qcScene = {
 					qcAutoUpdater.checkUpdate();
 					qcFramework.appTitle();
 				}
-
-				qcConfig.debug.disabledVideoBanner = false;
-				if(qcConfig.deviceInfo.banner_type == 'VideoBanner' && !qcConfig.debug.disabledVideoBanner) {
-					self.videoBanner();
-				}else{
-					$(qcCam.topBanner).show();
-				}
 				
 				if(qcConfig.deviceInfo.plugins.pre_html.id && !qcConfig.preImage.extPage) {
 					qcConfig.preImage.extPage = `${qcConfig.deviceInfo.plugins.pre_html.package_name}/index.html`;
@@ -136,64 +113,6 @@ const qcScene = {
 		});
 	},
 
-	setShootingInfo() {
-		const self = this;
-		const wmObj = self.waterMarks[self.currentWaterMarkIdx];
-		qcSession.set('shootingWaterMarkInfo', wmObj);
-		$(qcCam.camFlash).css({
-			backgroundImage: (wmObj.image.flash_image ? wmObj.image.flash_image : $(qcCam.camFlash).data('backgroundImage'))
-		});
-		if(wmObj.image.pre_image != '') {
-			$(qcCam.camPre).css({backgroundImage: `url(${wmObj.image.pre_image})`});
-		}
-		if(wmObj.image.post_image != '') {
-			$(qcCam.camPost).css({backgroundImage: `url(${wmObj.image.post_image})`});
-		}
-		qcCam.setReverseMirror(wmObj.reverse_mirror);
-		return wmObj;
-	},
-
-	waterMarkPreLoad(localPath, id, version, fileUrl) {
-		const self = this;
-
-		return new Promise((resolve, reject) => {
-			const localName = self._sponsorResLocalName(localPath, id, fileUrl);
-			let downloadFlag = false;
-			if(fileUrl) {
-				qcDatabase.getWaterMarkVersion(id).then((souVersion) => {
-					souVersion = $.extend({}, {version: -1}, souVersion);
-					if(souVersion.version!= version) {
-						qcDatabase.setWaterMarkVersion({
-							id: id,
-							version: version,
-							localName: localName
-						});
-						downloadFlag = true;
-					}
-					return qcFile.exists(localName);
-				}).then((fef) => {
-					if(downloadFlag || !fef) {
-						qcNetwork.downloadFile(fileUrl, localName).then(() => {
-							if(self.currentScene == 'launch') {
-								let counter = parseInt($('#initialLoadingImageCounter').text()) + 1;
-								$('#initialLoadingImageCounter').text(counter);
-							}
-							resolve();
-						});
-					}else{
-						if(self.currentScene == 'launch') {
-							let counter = parseInt($('#initialLoadingImageCounter').text()) + 1;
-							$('#initialLoadingImageCounter').text(counter);
-						}
-						resolve();
-					}
-				});
-			}else{
-				resolve();
-			}
-		});
-	},
-
 	showCamPosTip() {
 		const self = this;
 
@@ -207,44 +126,6 @@ const qcScene = {
 				$(qcCam.camPosTip).hide();
 				resolve();
 			}, qcConfig.capture.cameraPositionTipTime);
-		});
-	},
-
-	showARChoice() {
-		const self = this;
-
-		return new Promise((resolve, reject) => {
-			if(qcConfig.ar.enabledAR) {
-				$(qcCam.camARChoice).show();
-				$(qcCam.camARChoice).one('click', 'a.ar', (e) => {
-					e.preventDefault();
-					const arIdx = $(e.target).data('arIdx');
-					const arType = $(e.target).data('arType');
-					$(qcCam.camARChoice).find('a.selected').removeClass('selected');
-					$(e.currentTarget).addClass('selected');
-					
-					if(arType == 'NO') {
-						qcBrfv4.cleanLayer();
-					} else {
-						qcBrfv4.changeModules(arIdx);
-					}
-					$(qcCam.camARChoice).hide();
-
-					window.clearTimeout(self.seed.arChoice);
-					self.seed.arChoice = null;
-					resolve();
-				});
-
-				if(qcConfig.ar.waitTime > 0) {
-					self.seed.arChoice = window.setTimeout(() => {
-						qcLog.log('Scene Choice AR Timeout', 5);
-						$(qcCam.camARChoice).hide();
-						reject({err: 'archoice timeout'});
-					}, qcConfig.ar.waitTime);
-				}
-			} else {
-				resolve();
-			}
 		});
 	},
 
@@ -283,67 +164,15 @@ const qcScene = {
 		});
 	},
 
-	showPreview(data = {type: 'none', accessCode: ''}, waitTime = 10000) {
-		const self = this;
-
-		return new Promise((resolve, reject) => {
-			qcLog.log(`Scene Preview Show: ${data.accessCode} ${data.type}`, 5);
-			self.currentScene = 'preview';
-			qcFramework.cancelRelaunch();
-
-			self.seed.preview = window.setTimeout(() => {
-				qcLog.log('Scene Preview Close', 5);
-				$(qcCam.camPreview).find('.preview').removeClass('preview');
-				$(qcCam.camPreview).hide();
-				resolve();
-			}, waitTime);
-
-			$(qcCam.camPreview).find('img').removeClass('preview previewEffect');
-			$(qcCam.camPreview).find('video').removeClass('preview');
-			$(qcCam.camPreview).show();
-			switch(data.type) {
-				case 'picture':
-					$(qcCam.camPreview).find('img')
-						.prop('src', qcFile._uploadFileName(data.accessCode, 'jpg'))
-						.addClass('previewEffect');
-					break;
-				case 'gif':
-					$(qcCam.camPreview).find('img')
-						.prop('src', qcFile._uploadFileName(data.accessCode, 'gif'))
-						.addClass('preview');
-					break;
-				case 'video':
-					const videoFile = qcFile._uploadFileName(data.accessCode, 'webm');
-					$(qcCam.camPreview).find('video').prop('src', videoFile).addClass('preview');
-					break;
-			}
-			//$(qcCam.camPreview).fadeIn('slow');
-		});
-	},
-
 	clear2Initial(continuousShotting = false) {
 		const self = this;
 		const accessCode = qcSession.get('shootingAccessCode');
-
-		qcDatabase.addExtendData(accessCode, null, null, 'Y').then(() => {
-			// close extend data if exists
-		});
-
-		if(!continuousShotting) {
-			qcCam.lockWaterMark(false);
-		}
 
 		$(qcCam.camPreview).find('.preview').removeClass('preview');
 
 		$(qcKeyboard.keyboardLayer).hide();
 		$(qcCam.camEnded).hide();
 		$(qcCam.camPreview).hide();
-		$(qcCam.camFlash).hide();
-		$(qcCam.camPre).hide();
-		$(qcCam.camHtmlPre).hide();
-		$(qcCam.camPost).hide();
-		$(qcCam.camHtmlPost).hide();
-		$(qcCam.camGIFThumbs).hide();
 		$(qcCam.camTimer).hide();
 		if(!continuousShotting) {
 			$(qcEvent.camControl).show();

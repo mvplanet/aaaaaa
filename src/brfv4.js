@@ -13,10 +13,14 @@ const qcBrfv4 = {
 	brfManager: null,
 	resolution: null,
 	brfv4: null,
-	initDrawCanvas: true,
+	initDrawCanvas: false,
 	numFacesToTrack: 2,
 	lastCatch: 0,
-	localJsonFile: '',
+	localJsonFile: './assets/brfv4/assets/qc_face_textures_ext_lip.json',
+
+	_faceTexturesReady: false,
+	_faceTex: null,
+	_texture: new Image(),
 
 	init() {
 		const self = this;
@@ -25,7 +29,6 @@ const qcBrfv4 = {
 		self.elT3D = $(self._t3d).get(0);
 		self.elDrawing = $(self._drawing).get(0);
 		self.elFace = $(self._faceSub).get(0);
-		self.localJsonFile = qcScene._sponsorResLocalName('ar', 'ar', 'ar.json');
 
 		let jsLibs = [
 			"./assets/brfv4/libs/threejs/three.js",
@@ -33,26 +36,22 @@ const qcBrfv4 = {
 			"./assets/brfv4/qc/QcDrawing3DUtils_ThreeJS.js",
 			"./assets/brfv4/libs/brf/BRFv4_JS_trial.js",
 			"./assets/brfv4/qc/QcDrawingUtils_CreateJS.js",
-			"./assets/brfv4/libs/createjs/easeljs-0.8.2.min.js"
+			"./assets/brfv4/libs/createjs/easeljs-0.8.2.min.js",
+			'./assets/brfv4/qc/QcPointUtils.js',
+			'./assets/brfv4/qc/QcExtendedFace.js',
+			'./assets/brfv4/qc/QcPublicAPI.js'
 		];
-		if(qcConfig.ar.enabledAR && qcConfig.ar.arFilter) {
-			jsLibs.push(`./assets/brfv4/modules/${qcConfig.ar.arFilter}.js`);
-			qcLog.log(`AR Filter: ${qcConfig.ar.arFilter}`, 3);
-		} else {
-			self.initDrawCanvas = false;
-		}
+
 		qcLoader.preload(jsLibs, () => {
-			self.loadExtendJS().then(() => {
-				if (self.initDrawCanvas) {
-					if (t3d.setup && !t3d.stage) {
-						t3d.setup(self.elT3D);
-					}
-					if (drawing.setup && !drawing.stage) {
-						drawing.setup(self.elDrawing, self.elFace, 30);
-					}
+			if (self.initDrawCanvas) {
+				if (t3d.setup && !t3d.stage) {
+					t3d.setup(self.elT3D);
 				}
-				self.startCamera();
-			});
+				if (drawing.setup && !drawing.stage) {
+					drawing.setup(self.elDrawing, self.elFace, 30);
+				}
+			}
+			self.startCamera();
 		});
 	},
 
@@ -120,14 +119,17 @@ const qcBrfv4 = {
 		self.brfManager.setFaceTrackingStartParams(maxFaceSize * 0.20, maxFaceSize * 1.00, 32, 35, 32);
 		self.brfManager.setFaceTrackingResetParams(maxFaceSize * 0.15, maxFaceSize * 1.00, 40, 55, 32);
 
-		self.loadModules();
+		self.elDrawing.getContext('2d').globalCompositeOperation = 'multiply';
+		
+		qcNetwork.localJSON(self.localJsonFile).then((data) => {
+			qcLog.log(`Brfv4 Loading Bitmap`, 4);
+			self._faceTex = data.marcel_0;
+			self._texture.src = data.marcel_0.tex;
+			self._faceTexturesReady = true;
+		});
 
 		window.setInterval(self.trackFaces, 1000 / 30);
 		window.setInterval(self.brfv4Reset, 30 * 1000);
-	},
-
-	getDrawType() {
-		return this.drawType;
 	},
 	
 	trackFaces() {
@@ -158,54 +160,127 @@ const qcBrfv4 = {
 		}
 	},
 
-	setLastCatch() {
-		this.lastCatch = Date.now();
-	},
-
-	loadExtendJS() {
-		return new Promise((resolve, reject) => {
-			resolve();
-		});
-	},
-
-	cleanLayer() {
-	},
-
-	changeModules(idx) {
-	},
-
-	loadModules() {
-	},
-
 	processAR() {
-		let imageDataCtx = qcBrfv4.elCanvas.getContext("2d");
-		let t3dCtx = qcBrfv4.elT3D.getContext("2d");
-		qcBrfv4.brfManager.update(imageDataCtx.getImageData(0, 0, qcBrfv4.resolution.width, qcBrfv4.resolution.height).data);
-		
-		const faces = qcBrfv4.brfManager.getFaces();
-
-		for(let i = 0; i < faces.length; i++) {
-			let face = faces[i];
-			if(	face.state === qcBrfv4.brfv4.BRFState.FACE_TRACKING_START ||
-				face.state === qcBrfv4.brfv4.BRFState.FACE_TRACKING) {
-
-				t3dCtx.strokeStyle = "#00a0ff";
-				for(let k = 0; k < face.vertices.length; k+= 2) {
-					t3dCtx.beginPath();
-					t3dCtx.arc(face.vertices[k], face.vertices[k + 1], 2, 0, 2 * Math.PI);
-					t3dCtx.stroke();
+		if(qcBrfv4._faceTexturesReady) {
+			let _extendedShape = new BRFv4Extended.BRFv4ExtendedFace();
+			let imageDataCtx = qcBrfv4.elCanvas.getContext("2d");
+			let maskDataCtx = qcBrfv4.elDrawing.getContext("2d");
+			qcBrfv4.brfManager.update(imageDataCtx.getImageData(0, 0, qcBrfv4.resolution.width, qcBrfv4.resolution.height).data);
+	
+			const faces = qcBrfv4.brfManager.getFaces();
+			maskDataCtx.clearRect(0, 0, qcBrfv4.resolution.width, qcBrfv4.resolution.height);
+			for (let i = 0; i < faces.length; i++) {
+				let face = faces[i];
+				if (face.state === qcBrfv4.brfv4.BRFState.FACE_TRACKING_START ||
+					face.state === qcBrfv4.brfv4.BRFState.FACE_TRACKING) {
+					_extendedShape.update(face);
+					qcBrfv4.drawFaceClip(_extendedShape.vertices);
+	
+					let triangles = _extendedShape.triangles.concat();
+					let uvData = qcBrfv4._faceTex.uv;
+					triangles.splice(triangles.length - 3 * 6, 3 * 6);
+					qcBrfv4.drawTexture(face.vertices, triangles, qcBrfv4._faceTex.uv, qcBrfv4._texture);
+					qcBrfv4.lastCatch = Date.now();
 				}
-				qcBrfv4.setLastCatch();
 			}
 		}
 	},
 
-	addCleanItem() {
-		let data = $.extend(true, [], this._texturesData);
-		for(let i = 0; i < data.length; i++) {
-			data[i].type = 'AR';
+	drawFaceClip(vertices) {
+		var ctx = qcBrfv4.elDrawing.getContext("2d");
+	
+		ctx.save();
+		ctx.beginPath();
+		ctx.moveTo(vertices[0], vertices[0 + 1]);
+		ctx.lineTo(vertices[1 * 2], vertices[1 * 2 + 1]);
+		ctx.lineTo(vertices[2 * 2], vertices[2 * 2 + 1]);
+		ctx.lineTo(vertices[3 * 2], vertices[3 * 2 + 1]);
+		ctx.lineTo(vertices[4 * 2], vertices[4 * 2 + 1]);
+		ctx.lineTo(vertices[5 * 2], vertices[5 * 2 + 1]);
+		ctx.lineTo(vertices[6 * 2], vertices[6 * 2 + 1]);
+		ctx.lineTo(vertices[7 * 2], vertices[7 * 2 + 1]);
+		ctx.lineTo(vertices[8 * 2], vertices[8 * 2 + 1]);
+		ctx.lineTo(vertices[9 * 2], vertices[9 * 2 + 1]);
+		ctx.lineTo(vertices[10 * 2], vertices[10 * 2 + 1]);
+		ctx.lineTo(vertices[11 * 2], vertices[11 * 2 + 1]);
+		ctx.lineTo(vertices[12 * 2], vertices[12 * 2 + 1]);
+		ctx.lineTo(vertices[13 * 2], vertices[13 * 2 + 1]);
+		ctx.lineTo(vertices[14 * 2], vertices[14 * 2 + 1]);
+		ctx.lineTo(vertices[15 * 2], vertices[15 * 2 + 1]);
+		ctx.lineTo(vertices[16 * 2], vertices[16 * 2 + 1]);
+	
+		ctx.lineTo(vertices[73 * 2], vertices[73 * 2 + 1]);
+		ctx.lineTo(vertices[72 * 2], vertices[72 * 2 + 1]);
+		ctx.lineTo(vertices[71 * 2], vertices[71 * 2 + 1]);
+		ctx.lineTo(vertices[70 * 2], vertices[70 * 2 + 1]);
+		ctx.lineTo(vertices[69 * 2], vertices[69 * 2 + 1]);
+		ctx.lineTo(vertices[68 * 2], vertices[68 * 2 + 1]);
+	
+		ctx.closePath();
+		ctx.clip();
+		
+		ctx.drawImage(qcBrfv4.elCanvas, 0, 0);
+		ctx.restore();
+	},
+
+	drawTexture(vertices, triangles, uvData, texture) {
+		let ctx = qcBrfv4.elDrawing.getContext("2d");
+	
+		for (let i = 0; i < triangles.length; i += 3) {
+			var i0 = triangles[i];
+			var i1 = triangles[i + 1];
+			var i2 = triangles[i + 2];
+	
+			var x0 = vertices[i0 * 2];
+			var y0 = vertices[i0 * 2 + 1];
+			var x1 = vertices[i1 * 2];
+			var y1 = vertices[i1 * 2 + 1];
+			var x2 = vertices[i2 * 2];
+			var y2 = vertices[i2 * 2 + 1];
+	
+			var u0 = uvData[i0 * 2] * texture.width;
+			var v0 = uvData[i0 * 2 + 1] * texture.height;
+			var u1 = uvData[i1 * 2] * texture.width;
+			var v1 = uvData[i1 * 2 + 1] * texture.height;
+			var u2 = uvData[i2 * 2] * texture.width;
+			var v2 = uvData[i2 * 2 + 1] * texture.height;
+	
+			// Set clipping area so that only pixels inside the triangle will
+			// be affected by the image drawing operation
+			ctx.save();
+			ctx.beginPath();
+			ctx.moveTo(x0, y0);
+			ctx.lineTo(x1, y1);
+			ctx.lineTo(x2, y2);
+			ctx.closePath();
+			ctx.clip();
+	
+			// Compute matrix transform
+			var delta = u0 * v1 + v0 * u2 + u1 * v2 - v1 * u2 - v0 * u1 - u0 * v2;
+			var delta_a = x0 * v1 + v0 * x2 + x1 * v2 - v1 * x2 - v0 * x1 - x0 * v2;
+			var delta_b = u0 * x1 + x0 * u2 + u1 * x2 - x1 * u2 - x0 * u1 - u0 * x2;
+			var delta_c = u0 * v1 * x2 + v0 * x1 * u2 + x0 * u1 * v2 - x0 * v1 * u2 - v0 * u1 * x2 - u0 * x1 * v2;
+			var delta_d = y0 * v1 + v0 * y2 + y1 * v2 - v1 * y2 - v0 * y1 - y0 * v2;
+			var delta_e = u0 * y1 + y0 * u2 + u1 * y2 - y1 * u2 - y0 * u1 - u0 * y2;
+			var delta_f = u0 * v1 * y2 + v0 * y1 * u2 + y0 * u1 * v2 - y0 * v1 * u2 - v0 * u1 * y2 - u0 * y1 * v2;
+	
+			// Draw the transformed image
+			ctx.setTransform(
+				delta_a / delta, delta_d / delta,
+				delta_b / delta, delta_e / delta,
+				delta_c / delta, delta_f / delta
+			);
+	
+			ctx.drawImage(texture, 0, 0);
+			ctx.restore();
 		}
-		data.splice(0, 0, {type: 'NO', thumbData: './assets/images/No-filter.png', data: ''});
-		return data;
+	},
+
+	cleanLayer() {
+		const self = this;
+	
+		let maskDataCtx = self.elDrawing.getContext("2d");	
+		maskDataCtx.clearRect(0, 0, self.resolution.width, self.resolution.height);
+		self._faceTexturesReady = false;
 	}
 };
