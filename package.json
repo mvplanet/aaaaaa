@@ -1,0 +1,42 @@
+{
+  "name": "QuickeeCam",
+  "version": "1.0.13",
+  "description": "QuickeeCam Electron Version",
+  "main": "./app/main.js",
+  "scripts": {
+    "start": "cross-env NODE_ENV=development electron .",
+    "preinstall": "cd app && npm install",
+    "postinstall": "electron-rebuild --dist-url=https://npm.taobao.org/mirrors/atom-shell",
+    "version_auto_increment": "gulp version:auto",
+    "prepackage": "gulp minify",
+    "package": "cross-env NODE_ENV=production electron-packager ./ QuickeeCam --platform=win32 --build-version=1.0.13 --electron-version=1.6.2 --out=builds --overwrite --icon=app/assets/favicon/favicon.ico --ignore=.git --ignore=.gitgnore --ignore=.vscode --win32metadata.ProductName=QuickeeCam --win32metadata.CompanyName=QuickeeCam    --version-string.FileDescription=QuickeeCam",
+    "postpackage": "gulp publish",
+    "release64": "electron-installer-windows --src builds/QuickeeCam-win32-x64 --dest builds/releases/x64 --config release.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mvplanet/aaaaaa.git"
+  },
+  "keywords": [
+    "QuickeeCam",
+    "Electron"
+  ],
+  "author": "QuickeeCam, Inc. <support@quickeecam.com>",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/mvplanet/aaaaaa/issues"
+  },
+  "homepage": "https://github.com/mvplanet/aaaaaa#readme",
+  "devDependencies": {
+    "asar": "^0.13.0",
+    "concat": "^3.0.0",
+    "cross-env": "^5.0.5",
+    "del": "^3.0.0",
+    "electron": "1.6.2",
+    "electron-installer-windows": "*",
+    "electron-packager": "^8.6.0",
+    "electron-rebuild": "^1.5.7",
+    "gulp": "^3.9.1",
+    "node-minify": "^2.3.1"
+  }
+}

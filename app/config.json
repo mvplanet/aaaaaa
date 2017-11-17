@@ -1,0 +1,67 @@
+{
+	"themeName": "default",
+	"networkConnectionName": ["eth", "本地连接", "以太网", "无线", "Wireless", "en0"],
+	"system": {
+		"autoReload": true,
+		"autoReloadShootCounter": 200,
+		"autoReloadLocTime": "03:00:00"
+	},
+	"cameraSetting": {
+		"audio": {
+			"echoCancellation": false
+		},
+		"video": {
+			"width": {
+				"min": 960,
+				"ideal": 960,
+				"max": 960
+			},
+			"height": {
+				"min": 720,
+				"ideal": 720,
+				"max": 720
+			}
+		}
+	},
+	"webcam": {
+		"rotation": "plus90deg"
+	},
+	"ar": {
+		"enabledAR": true
+	},
+	"canvasEffect": {
+		"enabledCanvasEffect": false,
+		"effectFilter": ""
+	},
+	"debug": {
+		"devMode": false,
+		"zoomSize": 0.4,
+		"alwaysOnTop": true,
+		"autoLongTimeTestTask": false,
+		"logOutput": "file",
+		"consoleLogLevel": 5,
+		"disabledVideoBanner": false,
+		"disabledGallery": false,
+		"disabledUploadFile": false,
+		"cleanDbWithLaunch": false,
+		"cleanFilesWithLaunch": false,
+        "enabledTurnplateGame": false,
+        "autoLongTimeTestType": "random",
+        "webviewDebug": true
+	},
+    "macAddress": "",
+    "visenze": {
+        "enabledExtract": false
+    },
+    "preImage": {
+        "extPage": ""
+    },
+    "postImage": {
+        "extPage": ""
+    },
+    "arduino": {
+        "serialport": "",
+        "enabledArduino": false
+    },
+    "resourcesBasePath": ""
+}

@@ -1,0 +1,8 @@
+{
+  "icon": "app/assets/favicon/favicon.ico",
+  "tags": [
+    "Utility"
+  ],
+  "description":"QuickeeCam",
+  "noMsi": true
+}
