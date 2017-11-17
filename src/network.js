@@ -22,63 +22,6 @@ const qcNetwork = {
 		return !qcSocket.onlineFlag;
 	},
 
-	downloadFile(fileUrl, targetFile) {
-		const self = this;
-
-		return new Promise((resolve, reject) => {
-			let downloadCounterSeed = window.setInterval(() => {
-				const distFileName = qcMisc.hash(`${targetFile}/${Date.now()}`);
-				if(typeof self.downloadList[distFileName] === 'undefined' && Object.keys(self.downloadList).length < qcConfig.launch.downloadSupervene) {
-					const distFile = `${qcConfig.resourcesBasePath}/dist/${distFileName}`;
-					let downloadSeed = null;
-					let file = fs.createWriteStream(distFile);
-					let fileSize = -1;
-					qcNetwork.downloadList[distFileName] = true;
-
-					let req = http.get(fileUrl, (response) => {
-						fileSize = parseInt(response.headers['content-length']);
-						qcLog.log(`Network Download: ${fileUrl}`, 5);
-						window.clearTimeout(downloadSeed);
-						response.pipe(file);
-					}).on('close', () => {
-						// file close to resolve
-						//resolve();
-					}).on('error', (e) => {
-						// TODO: download error
-						window.clearTimeout(downloadSeed);
-						file.close();
-					}).on('abort', () => {
-						window.clearTimeout(downloadSeed);
-						file.close();
-					});
-
-					file.on('close', () => {
-						delete qcNetwork.downloadList[distFileName];
-						window.clearInterval(downloadCounterSeed);
-						downloadCounterSeed = null;
-
-						if(file.bytesWritten != fileSize) {
-							// download file breakdown
-							qcLog.log(`Network Download breakdown ${file.bytesWritten}/${fileSize}`, 3);
-							qcFile.remove(distFile);
-							downloadFile.downloadFile(fileUrl, targetFile).then(() => {
-								resolve();
-							});
-						} else {
-							qcFile.move(distFile, targetFile);
-							resolve();
-						}
-					});
-
-					downloadSeed = window.setTimeout(() => {
-						qcLog.log(`Network Download: ${fileUrl} abort`, 5);
-						req.abort();
-					}, qcConfig.network.downloadTimeout);
-				}
-			}, 500);
-		});
-	},
-
 	ajaxReq(tp, uri, data = {}, respSource = false, ajaxTimeout = 30000) {
 		const self = this;
 
@@ -135,30 +78,5 @@ const qcNetwork = {
 				resolve(data);
 			});
 		});
-	},
-
-	getMacAddress(saveDB = true) {
-		const nifs = os.networkInterfaces();
-		const rule = new RegExp(`^(${qcConfig.networkConnectionName.join('|')})`, 'iu');
-		let macAddress = '';
-		let backupAddress = '';
-		$.each(nifs, (key, item) => {
-			if(!backupAddress) {
-				backupAddress = typeof item[0].mac !== 'undefined' ? item[0].mac : '';
-			}
-			if(rule.test(key)) {
-				macAddress = item[0].mac;
-			}
-		});
-		if(!macAddress && backupAddress) {
-			macAddress = backupAddress;
-		}
-		if(macAddress && saveDB) {
-			qcDatabase.setDeviceInfo({
-				key: 'location/macAddress',
-				response: macAddress
-			});
-		}
-		return macAddress;
 	}
 };

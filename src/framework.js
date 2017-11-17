@@ -71,44 +71,11 @@ const qcFramework = {
 					const pageName = $(item).data('pageName');
 					$(item).load(`./views/${viewName}`, () => {
 						// disabled source webcam video rotation
-						/*
-						if(pageName == 'webcam') {
-							$(qcCam.videoPlayer).addClass(qcConfig.webcam.rotation);
-						}
-						*/
 					});
 				});
 
 				resolve();
 			});
-		});
-	},
-
-	loadDeviceInfo() {
-		const self = this;
-		qcLog.log('Framework Load Device Info', 0);
-
-		return new Promise((resolve, reject) => {
-			if(qcConfig.macAddress == '') {
-				qcDatabase.getDeviceInfo('location/macAddress').then((macAddress) => {
-					const newMac = qcNetwork.getMacAddress(false);
-					if(newMac && newMac != macAddress.response) {
-						qcDatabase.setDeviceInfo({
-							key: 'location/macAddress',
-							response: newMac
-						});
-						macAddress.response = newMac;
-						qcNotification.warning('Mac Address has changed.');
-					}
-					qcConfig.macAddress = macAddress.response;
-					if(qcConfig.macAddress == '') {
-						reject({err: 'cannot match networkConnectionName, unknow mac address'});
-					}
-					resolve();
-				});
-			} else {
-				resolve();
-			}
 		});
 	},
 

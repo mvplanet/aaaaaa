@@ -11,21 +11,10 @@ $(function() {
 		return qcFramework.init();
 	}).then(() => {
 		initialPercent(15, 'Initializing Framework');
-		return qcDatabase.init();
-	}).then(() => {
 		return qcFile.createResourceDir();
-	}).then(() => {
-		initialPercent(20, 'Initializing Database');
-		return qcFramework.loadDeviceInfo();
 	}).then(() => {
 		initialPercent(25, 'Initializing Device Info');
 		qcNetwork.init();
-		return qcSocket.init();
-	}).then(() => {
-		initialPercent(30, 'Initializing Network & WebSocket');
-		return qcTheme.init();
-	}).then(() => {
-		initialPercent(40, 'Initializing Theme');
 		return qcScene.init();
 	}).then(() => {
 		initialPercent(50, 'Initializing Scene');
@@ -38,11 +27,6 @@ $(function() {
 			videoPreview: '#videoPreview'
 		});
 	}).then(() => {
-		initialPercent(70, 'Initializing WebCam Device');
-		return qcGallery.init({
-			galleryList: '#galleryList'
-		});
-	}).then(() => {
 		initialPercent(80, 'Initializing Gallery');
 
 		qcQRcode.init();
@@ -50,35 +34,12 @@ $(function() {
 		qcSession.init();
 		qcHelper.init();
 		qcTimer.init();
-		qcArduino.init();
-		//qcTurnplate.init();
-		qcVisenze.init();
-		qcRestify.init();
-		qcAutoUpdater.init();
-
-		if(qcConfig.debug.autoLongTimeTestTask) {
-			qcAutoDebug.init();
-		}
-
-		if(!qcConfig.debug.disabledUploadFile) {
-			qcUploader.init();
-		}
-
-		initialPercent(90, 'Initializing Keyboard');
-		qcKeyboard.init({
-			keyboardLayer: '#keyboardLayer'
-		});
 		return Promise.resolve;
 	}).then(() => {
 		initialPercent(100, 'Initializing Done');
-		//qcFacemask.init();
 		qcBrfv4.init();
 		
 		qcScene.switch('webcam');
-
-		window.setTimeout(function(){
-			qcEffect.init();
-		}, 5000);
 
 		if(reluncSeed) {
 			window.clearTimeout(reluncSeed);

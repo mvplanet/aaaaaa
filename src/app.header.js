@@ -13,10 +13,5 @@ const bodyParser = require('body-parser');
 const crypto = require('crypto');
 const hasha = require('hasha');
 const spawn = require('child-process-promise').spawn;
-let firmata = undefined;
-try {
-	firmata = require("firmata");
-} catch(e) {
-	console.log(`Firmata Load Failure: ${JSON.stringify(e)}`);
-}
+
 webFrame.setZoomLevelLimits(1, 1);

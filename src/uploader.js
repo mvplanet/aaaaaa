@@ -48,57 +48,6 @@ const qcUploader = {
 		});
 	},
 
-	messageTask() {
-		const self = this;
-		self.uploadMessageFlag = true;
-		/*
-		qcDatabase.getSents().then((results) => {
-			$.each(results, (idx, item) => {
-				$.each(item.send, (idx2, item2) => {
-					let postData = {
-						access_code: item.access_code
-					};
-					if(item2.type == 'email') {
-						postData.email = item2.value;
-					}else if(item2.type == 'mobile') {
-						postData.country = 'US';
-						postData.mobile = item2.value;
-					}
-					qcLog.log(`Uploader message: ${JSON.stringify(postData)}`, 4);
-					qcNetwork.ajaxReq('POST', 'uploader/sendto', postData, true).then((data) => {
-						if(data.meta.stat == 'ok') {
-							qcDatabase.deleteSent(item.access_code);
-						}
-					});
-				});
-			});
-			self.uploadMessageFlag = false;
-		});
-		*/
-		let postData = {
-			access_code: '',
-			send_data: ''
-		};
-		qcDatabase.getSent().then((result) => {
-			if(result) {
-				postData.access_code = result.access_code;
-				postData.send_data = JSON.stringify(result.send);
-				qcLog.log(`Uploader message: ${JSON.stringify(postData)}`, 4);
-				return qcNetwork.ajaxReq('POST', 'uploader/sendtom', postData, true);
-			} else {
-				return Promise.reject();
-			}
-		}).then((req) => {
-			qcLog.log(`Uploader message ${JSON.stringify(req)} Done`, 4);
-			if(req.meta.stat == 'ok') {
-				qcDatabase.deleteSent(postData.access_code);
-			}
-			self.uploadMessageFlag = false;
-		}).catch((e) => {
-			self.uploadMessageFlag = false;
-		});
-	},
-
 	uploadTask() {
 		const self = this;
 
